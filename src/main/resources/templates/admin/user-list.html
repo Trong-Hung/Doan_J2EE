@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi"
+      class="light-style layout-menu-fixed"
+      dir="ltr"
+      data-theme="theme-default"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>Quản lý Nhân sự - HUDA.VN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/fonts/boxicons.css}" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/core.css}" class="template-customizer-core-css" />
+    <link rel="stylesheet" th:href="@{/assets/vendor/css/theme-default.css}" class="template-customizer-theme-css" />
+    <link rel="stylesheet" th:href="@{/assets/css/demo.css}" />
+    <script th:src="@{/assets/js/config.js}"></script>
+</head>
+
+<body>
+<div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+            <div class="app-brand demo">
+                <a th:href="@{/tasks/board}" class="app-brand-link">
+                    <span class="app-brand-text demo menu-text fw-bolder ms-2 text-uppercase" style="font-size: 1.2rem;">HUDA.VN</span>
+                </a>
+            </div>
+            <div class="menu-inner-shadow"></div>
+            <ul class="menu-inner py-1 mt-3">
+                <li class="menu-item">
+                    <a th:href="@{/tasks/board}" class="menu-link"><i class="menu-icon tf-icons bx bx-kanban"></i><div data-i18n="Analytics">Bảng Công Việc</div></a>
+                </li>
+                <li class="menu-item">
+                    <a th:href="@{/tasks/create}" class="menu-link"><i class="menu-icon tf-icons bx bx-plus-circle"></i><div data-i18n="Layouts">Tạo công việc mới</div></a>
+                </li>
+                <li class="menu-item">
+                    <a th:href="@{/chat}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-message-rounded-dots"></i>
+                        <div data-i18n="Chat">Tin nhắn (Huda Message)</div>
+                    </a>
+                </li>
+                <li class="menu-header small text-uppercase"><span class="menu-header-text">QUẢN TRỊ</span></li>
+                <li class="menu-item active" sec:authorize="hasAuthority('ADMIN')">
+                    <a th:href="@{/admin/users}" class="menu-link"><i class="menu-icon tf-icons bx bx-group"></i><div data-i18n="Account Settings">Quản lý Nhân sự</div></a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="layout-page">
+
+            <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+                <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+                    <div class="navbar-nav align-items-center">
+                        <div class="nav-item d-flex align-items-center fw-bold text-primary">
+                            <i class='bx bx-buildings fs-4 me-2'></i> <span>Hệ Thống Quản Trị</span> <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">ADMIN</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="content-wrapper">
+                <div class="container-xxl flex-grow-1 container-p-y">
+                    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Quản trị /</span> Danh sách Nhân sự</h4>
+
+                    <div th:if="${successMsg}" class="alert alert-success alert-dismissible fw-bold shadow-sm" role="alert">
+                        <i class="bx bx-check-circle me-2"></i> <span th:text="${successMsg}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible fw-bold shadow-sm" role="alert">
+                        <i class="bx bx-error-circle me-2"></i> <span th:text="${errorMsg}"></span>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Nhân sự cùng Công ty</h5>
+                            <a th:href="@{/admin/users/create}" class="btn btn-primary">
+                                <i class="bx bx-user-plus me-1"></i> Thêm nhân viên
+                            </a>
+                        </div>
+
+                        <div class="table-responsive text-nowrap">
+                            <table class="table table-hover">
+                                <thead>
+                                <tr>
+                                    <th>Mã NV</th>
+                                    <th>Nhân viên</th>
+                                    <th>Email (Tài khoản)</th>
+                                    <th>Phòng ban / Chức vụ</th>
+                                    <th>Quyền</th>
+                                    <th>Hành động</th>
+                                </tr>
+                                </thead>
+                                <tbody class="table-border-bottom-0">
+                                <tr th:each="u : ${users}">
+                                    <td><span class="fw-bold" th:text="'#' + ${u.id}"></span></td>
+                                    <td>
+                                        <div class="d-flex justify-content-start align-items-center">
+                                            <div class="avatar avatar-sm me-3">
+                                                <img th:src="${u.avatar != null ? u.avatar : '/assets/img/avatars/5.png'}" alt="Avatar" class="rounded-circle" />
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <a th:href="@{/users/detail/{id}(id=${u.id})}" class="text-body text-truncate fw-semibold" th:text="${u.fullName}"></a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td th:text="${u.username}"></td>
+                                    <td><i class="bx bx-briefcase text-info me-1"></i> <span th:text="${u.position}"></span></td>
+                                    <td><span class="badge" th:classappend="${u.role == 'ADMIN' ? 'bg-label-danger' : 'bg-label-success'}" th:text="${u.role}"></span></td>
+
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" th:href="@{/admin/users/edit/{id}(id=${u.id})}">
+                                                    <i class="bx bx-edit-alt me-1"></i> Sửa
+                                                </a>
+                                                <a class="dropdown-item text-danger"
+                                                   th:href="@{/admin/users/delete/{id}(id=${u.id})}"
+                                                   onclick="return confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa nhân viên này không? Mọi dữ liệu liên quan sẽ bị mất!');">
+                                                    <i class="bx bx-trash me-1"></i> Xóa nhân viên
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${users == null or users.isEmpty()}">
+                                    <td colspan="6" class="text-center text-muted py-4">Chưa có nhân sự nào trong Công ty của bạn.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/assets/vendor/libs/jquery/jquery.js}"></script>
+<script th:src="@{/assets/vendor/libs/popper/popper.js}"></script>
+<script th:src="@{/assets/vendor/js/bootstrap.js}"></script>
+<script th:src="@{/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js}"></script>
+<script th:src="@{/assets/vendor/js/menu.js}"></script>
+<script th:src="@{/assets/js/main.js}"></script>
+</body>
+</html>

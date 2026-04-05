@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Chi tiết Công việc</title>
+</head>
+<body>
+
+<div class="container-fluid p-4 mb-5 detail-wrapper">
+    <div class="row">
+
+        <div class="col-md-8 col-lg-8 pe-4">
+
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h3 class="fw-bold text-dark mb-0" th:text="${task.title}"></h3>
+                <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn btn-sm btn-label-secondary"><i class="bx bx-edit-alt"></i></a>
+            </div>
+
+            <div class="mt-4 mb-4">
+                <h6 class="fw-bold text-muted text-uppercase mb-2" style="font-size: 0.8rem;"><i class='bx bx-align-left'></i> MÔ TẢ CÔNG VIỆC</h6>
+                <div class="p-3 bg-lighter rounded text-dark" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6;"
+                     th:text="${task.description != null and !task.description.isEmpty() ? task.description : 'Không có mô tả chi tiết.'}">
+                </div>
+            </div>
+
+            <div class="mb-4" style="max-width: 100%;">
+                <button class="btn btn-sm btn-outline-secondary shadow-sm mb-2" onclick="document.getElementById('fileUploadInput').click()">
+                    <i class='bx bx-paperclip'></i> Thêm tài liệu
+                </button>
+                <input type="file" id="fileUploadInput" style="display: none;" th:onchange="'uploadTaskFile(' + ${task.id} + ')'">
+
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <div th:each="file : ${task.attachments}" class="border rounded p-2 d-flex align-items-center bg-white shadow-sm" style="max-width: 100%; width: fit-content;">
+                        <i class='bx bxs-file text-primary fs-4 me-2 flex-shrink-0'></i>
+                        <div class="me-3 overflow-hidden">
+                            <a th:href="${file.fileUrl}" target="_blank" class="fw-bold text-dark d-block text-truncate" style="font-size: 0.8rem; text-decoration: none;" th:text="${file.fileName}" th:title="${file.fileName}"></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-none border mb-4">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-2">
+                    <h6 class="fw-bold text-uppercase mb-0 text-dark" style="font-size: 0.85rem;">KẾT QUẢ CÔNG VIỆC</h6>
+                    <button class="btn btn-sm btn-label-primary fw-bold" th:onclick="'saveTaskResult(' + ${task.id} + ')'"><i class='bx bx-save'></i> Cập nhật</button>
+                </div>
+                <div class="card-body p-0">
+                    <textarea id="taskResultText" class="form-control border-0 shadow-none p-3" rows="4"
+                              placeholder="Nhập kết quả, link tài liệu hoặc báo cáo vào đây..."
+                              style="resize: none; background: #fafafa;" th:text="${task.result}"></textarea>
+                </div>
+            </div>
+
+            <div class="card shadow-none border">
+                <div class="card-header bg-white border-bottom py-2">
+                    <h6 class="fw-bold text-uppercase mb-0 text-dark" style="font-size: 0.85rem;">BÌNH LUẬN (<span th:text="${comments != null ? comments.size() : 0}">0</span>)</h6>
+                </div>
+                <div class="card-body p-3">
+                    <form th:action="@{/tasks/comment}" method="post" class="mb-4">
+                        <input type="hidden" name="taskId" th:value="${task.id}" />
+                        <div class="d-flex gap-3">
+                            <div class="avatar avatar-sm flex-shrink-0">
+                                <img th:src="${user != null and user.avatar != null ? user.avatar : '/assets/img/avatars/1.png'}" class="rounded-circle w-100 h-100" style="object-fit: cover;" />
+                            </div>
+                            <div class="input-group input-group-merge">
+                                <textarea name="content" class="form-control" rows="1" placeholder="Viết bình luận hoặc cập nhật tiến độ..." required></textarea>
+                                <button type="submit" class="btn btn-primary"><i class='bx bx-send'></i></button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div th:each="cmt : ${comments}" class="d-flex gap-3 mb-3 pb-3 border-bottom">
+                        <div class="avatar avatar-sm flex-shrink-0">
+                            <img th:src="${cmt.user.avatar != null ? cmt.user.avatar : '/assets/img/avatars/1.png'}" class="rounded-circle w-100 h-100" style="object-fit: cover;">
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="fw-bold text-primary me-2" style="font-size: 0.9rem;" th:text="${cmt.user.fullName}">Tên</span>
+                                <small class="text-muted" th:text="${#temporals.format(cmt.createdAt, 'HH:mm dd/MM/yyyy')}">Giờ</small>
+                            </div>
+                            <p class="mb-0 text-dark" style="font-size: 0.9rem; white-space: pre-wrap;" th:text="${cmt.content}">Comment</p>
+                        </div>
+                    </div>
+
+                    <div th:if="${comments == null or comments.isEmpty()}" class="text-center text-muted small py-3">
+                        Chưa có bình luận nào.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-4 col-lg-4">
+            <div class="card shadow-none border bg-lighter">
+                <div class="card-body p-3">
+
+                    <div class="mb-4 border-bottom pb-3">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-2">Trạng thái</small>
+                        <select name="status" class="form-select fw-bold border-primary text-primary shadow-sm" th:onchange="'updateTaskStatusAjax(' + ${task.id} + ', this.value)'">
+                            <option value="TODO" th:selected="${task.status == 'TODO'}">CẦN LÀM</option>
+                            <option value="IN_PROGRESS" th:selected="${task.status == 'IN_PROGRESS'}">ĐANG LÀM</option>
+                            <option value="PENDING_REVIEW" th:selected="${task.status == 'PENDING_REVIEW'}">CHỜ DUYỆT</option>
+                            <option value="SUCCESS" th:selected="${task.status == 'SUCCESS'}">HOÀN THÀNH</option>
+                            <option value="FAILED" th:selected="${task.status == 'FAILED'}">THẤT BẠI</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4 border-bottom pb-3">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-2">Người thực hiện</small>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar avatar-sm me-2 flex-shrink-0">
+                                <img th:src="${task.assignee != null and task.assignee.avatar != null ? task.assignee.avatar : '/assets/img/avatars/1.png'}" class="rounded-circle w-100 h-100" style="object-fit: cover;" />
+                            </div>
+                            <span class="fw-bold text-dark" th:text="${task.assignee != null ? task.assignee.fullName : 'Chưa gán'}"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 border-bottom pb-3">
+                        <small class="text-muted fw-bold text-uppercase d-block mb-2">Người theo dõi</small>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="text-muted small" th:if="${task.followers == null or task.followers.isEmpty()}">Không có</span>
+                            <span class="badge bg-label-secondary d-flex align-items-center mb-1" th:each="f : ${task.followers}">
+                                <i class='bx bx-user me-1'></i> <span th:text="${f.fullName}"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <small class="text-muted fw-bold text-uppercase d-block mb-2">Hạn chót</small>
+                        <div class="d-flex align-items-center text-danger fw-bold">
+                            <i class="bx bx-calendar fs-5 me-2"></i>
+                            <span th:text="${task.deadline != null ? #temporals.format(task.deadline, 'HH:mm dd/MM/yyyy') : 'Không thiết lập'}"></span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
